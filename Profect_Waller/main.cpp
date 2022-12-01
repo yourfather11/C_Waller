@@ -6,12 +6,12 @@
 #include "font.h"
 #include <time.h>
 
-#define SCREEN_WIDTH	3840
-#define SCREEN_HEIGHT	2160
+char bmp_path1[MAX_PATH];
+char bmp_path2[MAX_PATH];
+char user_name[128];
 
-char bmp_path1[] = "C:\\Users\\15477\\Downloads\\1.BMP";
-char bmp_path2[] = "C:\\Users\\15477\\Downloads\\2.BMP";
-
+#define SCREEN_WIDTH	1920
+#define SCREEN_HEIGHT	1080
 // BOOL SystemParametersInfo(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinlni);
 
 // 计算从 0001-1-1 起的天数
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 	long tmp_time = 0;
 	FILE* fp;
 	struct stat buf;
-	fopen_s(&fp, "C:\\Users\\15477\\Downloads\\config.txt", "r");
+	fopen_s(&fp, "C:\\Users\\唐苏龙\\Downloads\\config.txt", "r");
 	if (fp != NULL)
 	{
 		int fd = _fileno(fp);
@@ -73,7 +73,9 @@ int main(int argc, char** argv)
 		if (time_file > 300)
 		{
 			time_file = 0;
-			fopen_s(&fp, "C:\\Users\\15477\\Downloads\\config.txt", "r");
+			char str[MAX_PATH];
+			sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+			fopen_s(&fp, str, "r");
 			if (fp != NULL)
 			{
 				int fd = _fileno(fp);
@@ -98,6 +100,10 @@ void vMainCountDownDay(_Suyu_BMP* bmp);
 
 void vMainUpdate(void)
 {
+	DWORD length = 128;
+	GetUserNameA(user_name, &length);
+	sprintf_s(bmp_path1,MAX_PATH, "C:\\Users\\%s\\Downloads\\2.bmp", user_name);
+	sprintf_s(bmp_path2,MAX_PATH, "C:\\Users\\%s\\Downloads\\3.bmp", user_name);
 	_Suyu_BMP suyu_img;
 	Init_Suyu_BMP(&suyu_img, SCREEN_WIDTH, SCREEN_HEIGHT);
 	BMP_Decode(&suyu_img, bmp_path1);
@@ -117,8 +123,9 @@ void vMainSpecialDay(_Suyu_BMP* bmp)
 	wchar_t target[256];
 	wchar_t mstr[256];
 	char section[] = "[Special Day]";
-
-	fopen_s(&fp, "C:\\Users\\15477\\Downloads\\config.txt", "r");
+	char str[MAX_PATH];
+	sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+	fopen_s(&fp, str, "r");
 	int x = 0;
 	int y = 0;
 	/* 文件不能打开 */
@@ -190,8 +197,9 @@ void vMainCountDownDay(_Suyu_BMP* bmp)
 	wchar_t target[256];
 	wchar_t mstr[256];
 	char section[] = "[Coundown]";
-
-	fopen_s(&fp, "C:\\Users\\15477\\Downloads\\config.txt", "r");
+	char str[MAX_PATH];
+	sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+	fopen_s(&fp, str, "r");
 	int x = 0;
 	int y = 0;
 	/* 文件不能打开 */
