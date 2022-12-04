@@ -1,17 +1,16 @@
-#include <stdio.h>
-#include <windows.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "picture.h"
-#include "font.h"
-#include <time.h>
+#include "main.h"
 
 char bmp_path1[MAX_PATH];
 char bmp_path2[MAX_PATH];
 char user_name[128];
 
-#define SCREEN_WIDTH	1920
-#define SCREEN_HEIGHT	1080
+Dev_info dev_info;
+
+
+// 获取屏幕
+// GetSystemMetrics(SM_CXFULLSCREEN)
+// GetSystenMetrics(SM_CXFULLSCREEN)
+// 设置壁纸
 // BOOL SystemParametersInfo(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinlni);
 
 // 计算从 0001-1-1 起的天数
@@ -31,6 +30,7 @@ int nmonth = 5;
 int ndate = 3;
 
 void vMainUpdate(void);
+void get_device_info(Dev_info& inf);
 
 int main(int argc, char** argv)
 {
@@ -39,6 +39,7 @@ int main(int argc, char** argv)
 	tm now_tm;
 	localtime_s(&now_tm, &now_time);
 	int old_day = now_tm.tm_mday;
+	get_device_info(dev_info);
 	vMainUpdate();
 
 	int time_file = 0;
@@ -95,17 +96,34 @@ int main(int argc, char** argv)
 	return 0;
 }
 
+void get_device_info(Dev_info &inf)
+{
+	char tmp[MAX_PATH];
+	DWORD usernamelength = MAX_PATH;
+	HWND hwd = GetDesktopWindow();
+	HDC hdc = GetDC(hwd);
+
+	//inf.screen_height = GetSystemMetrics(SM_CYSCREEN);
+	//inf.screen_width = GetSystemMetrics(SM_CXSCREEN);
+	inf.screen_height = GetDeviceCaps(hdc, DESKTOPVERTRES);
+	inf.screen_width = GetDeviceCaps(hdc, DESKTOPHORZRES);
+	inf.user_dir = (char*)malloc(sizeof(char) * MAX_PATH);
+	GetUserNameA(tmp, &usernamelength);
+	strcpy_s(inf.user_dir,MAX_PATH, "C:/Users/");
+	strcat_s(inf.user_dir,MAX_PATH - strlen(inf.user_dir), tmp);
+}
+
+
+
 void vMainSpecialDay(_Suyu_BMP* bmp);
 void vMainCountDownDay(_Suyu_BMP* bmp);
 
 void vMainUpdate(void)
 {
-	DWORD length = 128;
-	GetUserNameA(user_name, &length);
-	sprintf_s(bmp_path1,MAX_PATH, "C:\\Users\\%s\\Downloads\\2.bmp", user_name);
-	sprintf_s(bmp_path2,MAX_PATH, "C:\\Users\\%s\\Downloads\\3.bmp", user_name);
+	sprintf_s(bmp_path1,MAX_PATH, "%s/Downloads/2.bmp", dev_info.user_dir);
+	sprintf_s(bmp_path2,MAX_PATH, "%s/Downloads/3.bmp", dev_info.user_dir);
 	_Suyu_BMP suyu_img;
-	Init_Suyu_BMP(&suyu_img, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Init_Suyu_BMP(&suyu_img, dev_info.screen_width, dev_info.screen_height);
 	BMP_Decode(&suyu_img, bmp_path1);
 	
 	vMainSpecialDay(&suyu_img);
@@ -124,7 +142,7 @@ void vMainSpecialDay(_Suyu_BMP* bmp)
 	wchar_t mstr[256];
 	char section[] = "[Special Day]";
 	char str[MAX_PATH];
-	sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+	sprintf_s(str, MAX_PATH, "%s/Downloads/config.txt", dev_info.user_dir);
 	fopen_s(&fp, str, "r");
 	int x = 0;
 	int y = 0;
@@ -180,7 +198,7 @@ void vMainSpecialDay(_Suyu_BMP* bmp)
 			i++;
 		}
 
-		show_string(bmp, (char*)"C:\\Windows\\Fonts\\simkai.ttf", font_height, SCREEN_WIDTH - xlen, y, mstr);
+		show_string(bmp, (char*)"C:\\Windows\\Fonts\\simkai.ttf", font_height, dev_info.screen_width - xlen, y, mstr);
 
 		y += font_height;
 
@@ -198,7 +216,7 @@ void vMainCountDownDay(_Suyu_BMP* bmp)
 	wchar_t mstr[256];
 	char section[] = "[Coundown]";
 	char str[MAX_PATH];
-	sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+	sprintf_s(str, MAX_PATH, "%s/Downloads/config.txt", dev_info.user_dir);
 	fopen_s(&fp, str, "r");
 	int x = 0;
 	int y = 0;
