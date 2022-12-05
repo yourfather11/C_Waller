@@ -47,7 +47,9 @@ int main(int argc, char** argv)
 	long tmp_time = 0;
 	FILE* fp;
 	struct stat buf;
-	fopen_s(&fp, "C:\\Users\\唐苏龙\\Downloads\\config.txt", "r");
+	char str[MAX_PATH];
+	sprintf_s(str, MAX_PATH, "%s/Downloads/config.txt", dev_info.user_dir);
+	fopen_s(&fp, str, "r");
 	if (fp != NULL)
 	{
 		int fd = _fileno(fp);
@@ -71,11 +73,11 @@ int main(int argc, char** argv)
 		/* 5分钟判断一次文件是否更新 */
 		time_file++;
 		
-		if (time_file > 300)
+		if (time_file > 60*2)
 		{
 			time_file = 0;
 			char str[MAX_PATH];
-			sprintf_s(str, MAX_PATH, "C:\\Users\\%s\\Downloads\\config.txt", user_name);
+			sprintf_s(str, MAX_PATH, "%s/Downloads/config.txt", dev_info.user_dir);
 			fopen_s(&fp, str, "r");
 			if (fp != NULL)
 			{
@@ -88,6 +90,7 @@ int main(int argc, char** argv)
 		if (tmp_time != modify_time)
 		{
 			// 更新壁纸
+			modify_time = tmp_time;
 			vMainUpdate();
 		}
 		// 文件更新了
@@ -103,8 +106,6 @@ void get_device_info(Dev_info &inf)
 	HWND hwd = GetDesktopWindow();
 	HDC hdc = GetDC(hwd);
 
-	//inf.screen_height = GetSystemMetrics(SM_CYSCREEN);
-	//inf.screen_width = GetSystemMetrics(SM_CXSCREEN);
 	inf.screen_height = GetDeviceCaps(hdc, DESKTOPVERTRES);
 	inf.screen_width = GetDeviceCaps(hdc, DESKTOPHORZRES);
 	inf.user_dir = (char*)malloc(sizeof(char) * MAX_PATH);
@@ -114,7 +115,7 @@ void get_device_info(Dev_info &inf)
 }
 
 
-
+void vMainMemorandum(_Suyu_BMP* bmp);
 void vMainSpecialDay(_Suyu_BMP* bmp);
 void vMainCountDownDay(_Suyu_BMP* bmp);
 
@@ -128,6 +129,7 @@ void vMainUpdate(void)
 	
 	vMainSpecialDay(&suyu_img);
 	vMainCountDownDay(&suyu_img);
+	vMainMemorandum(&suyu_img);
 	// 编码
 	BMP_Encode(bmp_path2, &suyu_img);
 	free_Suyu_BMP(&suyu_img);
@@ -275,6 +277,75 @@ void vMainCountDownDay(_Suyu_BMP* bmp)
 		show_string(bmp, (char*)"C:\\Windows\\Fonts\\simkai.ttf", font_height, 0, y, mstr);
 
 		y += font_height;
+
+		fgets(tmp_buf, 512, fp);
+	}
+
+	fclose(fp);
+}
+
+void vMainMemorandum(_Suyu_BMP* bmp)
+{
+	FILE* fp;
+	char tmp_buf[512];
+	wchar_t target[256];
+	wchar_t mstr[256];
+	int font_height = 100;
+	char section[] = "[Memo]";
+	char str[MAX_PATH];
+	sprintf_s(str, MAX_PATH, "%s/Downloads/config.txt", dev_info.user_dir);
+	fopen_s(&fp, str, "r");
+	int x = 0;
+	int y = dev_info.screen_height - font_height;
+	/* 文件不能打开 */
+	if (fp == NULL)
+	{
+		return;
+	}
+	fseek(fp, 0, SEEK_SET);
+	fgets(tmp_buf, 512, fp);
+	while (!feof(fp))
+	{
+		if (strncmp(tmp_buf, section, sizeof(section) - 1) == 0)
+		{
+			break;
+		}
+		fgets(tmp_buf, 512, fp);
+	}
+
+	time_t now_time = time(NULL);
+	tm now_tm;
+	localtime_s(&now_tm, &now_time);
+
+	int tyear, tmonth, tday;
+
+	fgets(tmp_buf, 512, fp);
+	while (!feof(fp) && (tmp_buf[0] != '\n' && tmp_buf[0] != ' '))
+	{
+		int length = strlen(tmp_buf);
+		tmp_buf[length - 1] = 0;
+		int size = MultiByteToWideChar(CP_UTF8, 0, tmp_buf, -1, NULL, 0);
+		MultiByteToWideChar(CP_UTF8, 0, tmp_buf, -1, target, size);
+
+		wsprintf(mstr, target);
+
+		int xlen = 0;
+		int i = 0;
+		while (*(mstr + i))
+		{
+			if (*(mstr + i) < 128)
+			{
+				xlen += font_height / 2;
+			}
+			else
+			{
+				xlen += font_height;
+			}
+			i++;
+		}
+
+		y -= font_height;
+		show_string(bmp, (char*)"C:\\Windows\\Fonts\\simkai.ttf", font_height, dev_info.screen_width - xlen, y, mstr);
 
 		fgets(tmp_buf, 512, fp);
 	}
