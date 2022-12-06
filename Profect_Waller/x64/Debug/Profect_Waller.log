@@ -1,6 +1,0 @@
-﻿  main.cpp
-E:\Code_VS2022\Profect_Waller\Profect_Waller\main.cpp(55,20): warning C4244: “=”: 从“time_t”转换到“long”，可能丢失数据
-E:\Code_VS2022\Profect_Waller\Profect_Waller\main.cpp(84,19): warning C4244: “=”: 从“time_t”转换到“long”，可能丢失数据
-E:\Code_VS2022\Profect_Waller\Profect_Waller\main.cpp(175,31): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-E:\Code_VS2022\Profect_Waller\Profect_Waller\main.cpp(249,31): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-  Profect_Waller.vcxproj -> E:\Code_VS2022\Profect_Waller\x64\Debug\Profect_Waller.exe
